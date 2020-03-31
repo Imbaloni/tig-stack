@@ -1,10 +1,14 @@
-grafana:
-    image: matisq/grafana:latest
+version: '2'
+services:
+
+  grafana:
+    build: grafana
     ports: 
-        - 3000:3000
+        - 3001:3000
     links:
         - influxdb:influxdb
     environment:
+        GF_SERVER_ROOT_URL: https://op.proskive.de/monitoring/grafana/
         GF_SECURITY_ADMIN_USER: admin
         GF_SECURITY_ADMIN_PASSWORD: admin
         GF_SECURITY_SECRET_KEY: grafana
@@ -14,20 +18,22 @@ grafana:
         GF_AUTH_ANONYMOUS_ORG_NAME: grafana
         GF_DASHBOARDS_JSON_ENABLED: "true"
         GF_DASHBOARDS_JSON_PATH: /opt/grafana
+        GRAFANA_PLUGINS_ENABLED: "true"
     volumes_from:
         - grafana-data
-    restart: always
+    networks:
+        - tig-stack
 
-grafana-data:
+  grafana-data:
     image: busybox
     tty: true
     volumes:
-        - /var/lib/grafana
-        - /var/log/grafana
-        - /var/lib/grafana/plugins
+        - ./grafana-data:/var/lib/grafana
+        - ./grafana-logs:/var/log/grafana
+        - ./grafana-plugins:/var/lib/grafana/plugins
 
-influxdb:
-    image: matisq/influxdb:latest
+  influxdb:
+    build: influxdb
     ports:
         - 8083:8083
         - 8086:8086
@@ -37,15 +43,17 @@ influxdb:
         INFLUX_ADMIN_PASS: "grafana"
     volumes_from:
         - influxdb-data
+    networks:
+        - tig-stack
 
-influxdb-data:
+  influxdb-data:
     image: busybox
     tty: true
     volumes:
-        - /var/lib/influxdb
+        - ./influx-data:/var/lib/influxdb
 
-telegraf:
-    image: matisq/telegraf:latest
+  telegraf:
+    build: telegraf
     links:
         - influxdb:influxdb
     environment:
@@ -53,7 +61,14 @@ telegraf:
         INFLUXDB_HOST: "influxdb"
         INFLUXDB_PORT: "8086"
         DATABASE: "telegraf"
+        HOST_PROC: /host/proc
     tty: true
     volumes:
+        - /proc:/host/proc:ro
         - /var/run/docker.sock:/var/run/docker.sock
     privileged: true
+    networks:
+        - tig-stack
+
+networks:
+    tig-stack:

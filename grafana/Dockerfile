@@ -1,10 +1,9 @@
-FROM grafana/grafana:latest
+FROM grafana/grafana:latest-ubuntu
 MAINTAINER Mateusz Trojak <mateusz.trojak@gmail.com>
 LABEL version="1.2"
 LABEL description="Grafana docker image with custom setup"
 
 USER root
-
 RUN apt-get -q update &&\
     DEBIAN_FRONTEND="noninteractive" apt-get -q upgrade -y -o Dpkg::Options::="--force-confnew" --no-install-recommends &&\
     DEBIAN_FRONTEND="noninteractive" apt-get -q install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends curl gosu &&\
