@@ -1,0 +1,4 @@
+grafana-data/
+grafana-plugins/
+grafana-logs/
+influx-data/
